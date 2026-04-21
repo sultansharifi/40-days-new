@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>چالش ۴۰ روزه</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--bg0:#fff;--bg1:#f3f3f0;--t1:#1a1a18;--t2:#68685f;--bl:rgba(0,0,0,.1);--bm:rgba(0,0,0,.18);--green:#1a9e72;--red:#e04848;--blue:#3480d4}
+@media(prefers-color-scheme:dark){:root{--bg0:#1c1c1a;--bg1:#252522;--t1:#f0f0ea;--t2:#909087;--bl:rgba(255,255,255,.09);--bm:rgba(255,255,255,.16)}}
+body{font-family:-apple-system,system-ui;background:var(--bg1);color:var(--t1);direction:rtl;padding-bottom:70px}
+.wrap{max-width:540px;margin:0 auto;padding:0 16px}
+.hdr{text-align:center;padding:24px 0 16px}
+.hdr h1{font-size:26px;background:linear-gradient(135deg,var(--green),var(--blue));background-clip:text;-webkit-background-clip:text;color:transparent}
+.card{background:var(--bg0);border-radius:16px;padding:18px 14px;margin-bottom:14px}
+.mrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.met{background:var(--bg1);border-radius:12px;padding:12px 4px;text-align:center}
+.mlb{font-size:11px;color:var(--t2)}.mvl{font-size:27px;font-weight:700}
+.gb{color:var(--green)}.rb{color:var(--red)}.bb{color:var(--blue)}
+.pbar{background:var(--bg1);border-radius:99px;height:8px;margin:18px 0 6px;overflow:hidden}
+.pfil{height:100%;background:linear-gradient(90deg,var(--green),#2bbd8a);width:0%}
+.tabs{display:flex;gap:8px;margin-bottom:16px}
+.tab{flex:1;padding:10px 0;border-radius:99px;border:0.5px solid var(--bl);font-size:14px;cursor:pointer;background:transparent;color:var(--t2)}
+.tab.on{background:var(--bg0);color:var(--t1);border-color:var(--bm)}
+.stl{font-size:16px;font-weight:600;margin-bottom:12px}
+.ti{background:var(--bg0);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer}
+.ti.done{background:var(--bg1);opacity:.85}
+.chk{width:26px;height:26px;border-radius:50%;border:2px solid var(--bm);display:flex;align-items:center;justify-content:center}
+.chk.on{background:var(--green);border-color:var(--green)}.chk.on::after{content:'✓';color:#fff;font-size:14px}
+.tn{flex:1;font-size:16px}.ti.done .tn{color:var(--t2);text-decoration:line-through}
+.btn{padding:10px 18px;border-radius:12px;border:0.5px solid var(--bm);background:transparent;cursor:pointer}
+.btng{background:var(--green);color:#fff;border-color:var(--green)}
+.btnr{background:var(--red);color:#fff;font-size:12px;padding:6px 14px}
+.sbtn{width:100%;padding:15px;border-radius:12px;border:none;background:var(--blue);color:#fff;font-weight:600;margin-top:8px}
+.sbtn:disabled{background:var(--bg1);color:var(--t2)}
+.addrow{display:flex;gap:10px;margin:12px 0}
+.inp{flex:1;padding:12px;border-radius:12px;border:0.5px solid var(--bl);background:var(--bg0);font-family:inherit}
+.rbox{background:var(--bg0);border-radius:16px;padding:16px;margin-top:14px;display:none}
+.rbox.show{display:block}
+.rtx{font-size:13px;white-space:pre-wrap;background:var(--bg1);border-radius:12px;padding:14px;direction:ltr;text-align:left}
+.hi{background:var(--bg0);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;justify-content:space-between}
+.empty{text-align:center;color:var(--t2);padding:32px 0}
+.rstbtn{color:var(--red);border-color:var(--red);width:100%;margin-top:12px}
+.complete-badge{background:var(--green);color:#fff;text-align:center;padding:10px;border-radius:99px;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr"><h1>🔥 چالش ۴۰ روزه</h1><small id="dstr"></small></div>
+  <div class="card"><div class="mrow"><div class="met"><div class="mlb">روزهای باقی</div><div class="mvl bb" id="mr">40</div></div><div class="met"><div class="mlb">روز گذشته</div><div class="mvl gb" id="md">0</div></div><div class="met"><div class="mlb">اشتباهات</div><div class="mvl rb" id="me">0</div></div></div><div class="pbar"><div class="pfil" id="pf"></div></div><div class="plbl" id="pl">0% پیشرفت</div></div>
+  <div class="tabs"><button class="tab on" data-tab="today">امروز</button><button class="tab" data-tab="history">تاریخچه</button><button class="tab" data-tab="settings">وظایف</button></div>
+  <div id="todayPanel"><div class="stl">📋 وظایف امروز</div><div id="tasksList"></div><button class="sbtn" id="submitBtn">ثبت گزارش روز</button><div id="completeMessage" style="display:none" class="complete-badge">🎉 چالش کامل شد 🎉</div><div class="rbox" id="reportBox"><div>📄 گزارش امروز</div><div class="rtx" id="reportText"></div><button class="btn" id="copyBtn">📋 کپی گزارش</button></div></div>
+  <div id="historyPanel" style="display:none"><div class="stl">📆 تاریخچه</div><div id="historyList"></div></div>
+  <div id="settingsPanel" style="display:none"><div class="stl">✏️ مدیریت وظایف</div><div id="settingsTasksList"></div><div class="addrow"><input class="inp" id="newTaskInput" placeholder="مثال: مدیتیشن ۱۰ دقیقه"><button class="btn btng" id="addTaskBtn">➕ افزودن</button></div><button class="btn rstbtn" id="resetAllBtn">⚠️ ریست کامل</button></div>
+</div>
+<script>
+const STORAGE_KEY="fortyDaysChallenge";
+const DEFAULT_TASKS=["ورزش روزانه","مطالعه ۳۰ دقیقه","عدم استفاده از موبایل بعد از ۱۰ شب"];
+let appState={mistakes:0,history:[],tasks:[...DEFAULT_TASKS],currentChecks:{},submittedToday:false,lastSubmissionDate:null,lastReport:""};
+function todayStr(){return new Date().toISOString().slice(0,10);}
+function formatPersianDate(){return new Date().toLocaleDateString('fa-IR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});}
+function syncChecks(){let nc={};for(let i=0;i<appState.tasks.length;i++)nc[i]=!!appState.currentChecks[i];appState.currentChecks=nc;}
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify({mistakes:appState.mistakes,history:appState.history,tasks:appState.tasks,currentChecks:appState.currentChecks,submittedToday:appState.submittedToday,lastSubmissionDate:appState.lastSubmissionDate,lastReport:appState.lastReport}));}
+function load(){let raw=localStorage.getItem(STORAGE_KEY);if(!raw){appState={mistakes:0,history:[],tasks:[...DEFAULT_TASKS],currentChecks:{},submittedToday:false,lastSubmissionDate:null,lastReport:""};syncChecks();return;}let s=JSON.parse(raw);appState.mistakes=s.mistakes??0;appState.history=s.history??[];appState.tasks=s.tasks?.length?s.tasks:[...DEFAULT_TASKS];appState.currentChecks=s.currentChecks??{};appState.submittedToday=s.submittedToday===true;appState.lastSubmissionDate=s.lastSubmissionDate||null;appState.lastReport=s.lastReport||"";syncChecks();}
+function handleDayChange(){let t=todayStr(),ls=appState.lastSubmissionDate;if(!appState.submittedToday&&ls!==t){if(ls!==null&&ls!==t){appState.currentChecks={};syncChecks();appState.submittedToday=false;appState.lastReport="";}else if(ls===null){appState.currentChecks={};syncChecks();appState.submittedToday=false;}}if(appState.submittedToday&&ls!==t){appState.submittedToday=false;appState.currentChecks={};syncChecks();appState.lastReport="";}save();}
+function metrics(){let total=40+appState.mistakes,done=appState.history.length,rem=Math.max(0,total-done),pct=total>0?Math.min(100,Math.floor(done/total*100)):0;return{total,done,rem,pct};}
+function isComplete(){return metrics().rem===0&&appState.history.length>0;}
+function renderHeader(){let{rem,done,pct}=metrics();document.getElementById('mr').innerText=rem;document.getElementById('md').innerText=done;document.getElementById('me').innerText=appState.mistakes;document.getElementById('pf').style.width=pct+'%';document.getElementById('pl').innerText=pct+'% پیشرفت';document.getElementById('dstr').innerText=formatPersianDate();}
+function escapeHtml(s){return s.replace(/[&<>]/g,m=>m==='&'?'&amp;':m==='<'?'&lt;':'&gt;');}
+function renderToday(){let cont=document.getElementById('tasksList'),btn=document.getElementById('submitBtn'),compMsg=document.getElementById('completeMessage'),completed=isComplete();if(completed){cont.innerHTML='<div class="empty">✅ چالش به پایان رسید</div>';btn.disabled=true;btn.textContent='چالش کامل شد';compMsg.style.display='block';return;}compMsg.style.display='none';if(!appState.tasks.length){cont.innerHTML='<div class="empty">❗ وظیفه‌ای تعریف نشده</div>';btn.disabled=true;btn.textContent='ثبت غیرممکن';return;}let html='';for(let i=0;i<appState.tasks.length;i++){let c=!!appState.currentChecks[i],lk=appState.submittedToday||completed;html+=`<div class="ti ${c?'done':''} ${lk?'lk':''}" data-task-index="${i}"><div class="chk ${c?'on':''}"></div><div class="tn">${escapeHtml(appState.tasks[i])}</div></div>`;}cont.innerHTML=html;if(appState.submittedToday){btn.disabled=true;btn.textContent='✅ گزارش امروز ثبت شد';}else if(completed){btn.disabled=true;btn.textContent='چالش کامل شد';}else{btn.disabled=false;btn.textContent='📌 ثبت گزارش روز';}let box=document.getElementById('reportBox');if(appState.submittedToday&&appState.lastReport){box.classList.add('show');document.getElementById('reportText').innerText=appState.lastReport;}else box.classList.remove('show');}
+function renderHistory(){let cont=document.getElementById('historyList');if(!appState.history.length){cont.innerHTML='<div class="empty">هنوز روزی ثبت نشده</div>';return;}let html='';for(let i=appState.history.length-1;i>=0;i--){let h=appState.history[i];html+=`<div class="hi"><span>📅 ${escapeHtml(h.date)} — روز ${h.dayNum}</span><span class="${h.failed?'berr':'bok'}">${h.failed?h.failed+' اشتباه':'موفق'}</span></div>`;}cont.innerHTML=html;}
+function renderSettings(){let cont=document.getElementById('settingsTasksList');if(!appState.tasks.length){cont.innerHTML='<div class="empty">لیست خالی است</div>';return;}let html='';for(let i=0;i<appState.tasks.length;i++){html+=`<div class="ti lk"><div class="tn">${escapeHtml(appState.tasks[i])}</div><button class="btn btnr" data-del-index="${i}">🗑️ حذف</button></div>`;}cont.innerHTML=html;document.querySelectorAll('#settingsTasksList .btnr').forEach(btn=>{btn.removeEventListener('click',window.delHandler);window.delHandler=(e)=>{let idx=parseInt(e.currentTarget.getAttribute('data-del-index'));if(!isNaN(idx)&&idx>=0&&idx<appState.tasks.length){appState.tasks.splice(idx,1);syncChecks();save();renderSettings();renderToday();renderHeader();}};btn.addEventListener('click',window.delHandler);});}
+function toggleTask(i){if(appState.submittedToday||isComplete())return;if(i>=0&&i<appState.tasks.length){appState.currentChecks[i]=!appState.currentChecks[i];save();renderToday();}}
+function submitReport(){if(appState.submittedToday){alert('امروز قبلاً ثبت شده');return;}if(isComplete()){alert('چالش کامل شده');return;}if(!appState.tasks.length){alert('وظیفه‌ای وجود ندارد');return;}let done=0;for(let i=0;i<appState.tasks.length;i++)if(appState.currentChecks[i])done++;let failed=appState.tasks.length-done;appState.mistakes+=failed;let dayNum=appState.history.length+1,date=formatPersianDate(),iso=todayStr();let lines='';for(let i=0;i<appState.tasks.length;i++)lines+=`${appState.currentChecks[i]?'✅':'❌'} ${appState.tasks[i]}\n`;let newTotal=40+appState.mistakes;let report=`📋 گزارش روز ${dayNum}\n📅 تاریخ: ${date}\n━━━━━━━━━━━━━━━━\n${lines.trim()}\n━━━━━━━━━━━━━━━━\n✅ انجام شده: ${done}/${appState.tasks.length}\n❌ اشتباه امروز: ${failed}\n🎯 مجموع اشتباهات: ${appState.mistakes}\n📆 هدف جدید: ${newTotal} روز\n${failed===0?'🏆 روز موفق! آفرین':`⚠️ ${failed} روز به چالش اضافه شد`}`;appState.lastReport=report;appState.submittedToday=true;appState.lastSubmissionDate=iso;appState.history.push({date:date,dayNum:dayNum,failed:failed,done:done,total:appState.tasks.length});save();renderHeader();renderToday();renderHistory();}
+function fullReset(){if(confirm('همه داده‌ها پاک می‌شوند. ادامه؟')){appState={mistakes:0,history:[],tasks:[...DEFAULT_TASKS],currentChecks:{},submittedToday:false,lastSubmissionDate:null,lastReport:""};syncChecks();save();renderAll();goToTab('today');}}
+function addTask(){let inp=document.getElementById('newTaskInput'),val=inp.value.trim();if(!val){alert('وظیفه را وارد کن');return;}appState.tasks.push(val);syncChecks();inp.value='';save();renderSettings();renderToday();}
+function goToTab(tab){document.getElementById('todayPanel').style.display=tab==='today'?'block':'none';document.getElementById('historyPanel').style.display=tab==='history'?'block':'none';document.getElementById('settingsPanel').style.display=tab==='settings'?'block':'none';document.querySelectorAll('.tab').forEach(btn=>{if(btn.getAttribute('data-tab')===tab)btn.classList.add('on');else btn.classList.remove('on');});if(tab==='history')renderHistory();if(tab==='settings')renderSettings();if(tab==='today')renderToday();}
+function renderAll(){renderHeader();renderToday();renderHistory();if(document.getElementById('settingsPanel').style.display!=='none')renderSettings();}
+function init(){load();handleDayChange();save();renderAll();document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>goToTab(btn.getAttribute('data-tab'))));document.getElementById('submitBtn').addEventListener('click',submitReport);document.getElementById('copyBtn').addEventListener('click',()=>{if(appState.lastReport){navigator.clipboard.writeText(appState.lastReport).then(()=>{let b=document.getElementById('copyBtn');let t=b.innerText;b.innerText='✅ کپی شد!';setTimeout(()=>b.innerText=t,1500);}).catch(()=>alert('کپی نشد'))}});document.getElementById('addTaskBtn').addEventListener('click',addTask);document.getElementById('newTaskInput').addEventListener('keypress',e=>{if(e.key==='Enter')addTask();});document.getElementById('resetAllBtn').addEventListener('click',fullReset);document.getElementById('tasksList').addEventListener('click',e=>{let div=e.target.closest('.ti');if(!div)return;if(appState.submittedToday||isComplete())return;let idx=div.getAttribute('data-task-index');if(idx!==null)toggleTask(parseInt(idx));});goToTab('today');}
+init();
+</script>
+</body>
+</html>
