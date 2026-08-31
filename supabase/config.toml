@@ -1,0 +1,13 @@
+project_id = "modiriyat-amoozesh"
+
+[db]
+port = 54322
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage"]
+
+[studio]
+enabled = true
+port = 54323

@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 63% 6%;
+    --foreground: 210 40% 96%;
+
+    --card: 222 47% 10%;
+    --card-foreground: 210 40% 96%;
+
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 96%;
+
+    --primary: 199 89% 62%;
+    --primary-foreground: 222 63% 8%;
+
+    --secondary: 222 40% 16%;
+    --secondary-foreground: 210 40% 96%;
+
+    --muted: 222 35% 15%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 199 89% 62%;
+    --accent-foreground: 222 63% 8%;
+
+    --destructive: 0 72% 58%;
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 152 60% 48%;
+    --success-foreground: 222 63% 8%;
+
+    --warning: 38 92% 55%;
+    --warning-foreground: 222 63% 8%;
+
+    --border: 217 33% 20%;
+    --input: 217 33% 20%;
+    --ring: 199 89% 62%;
+
+    --sidebar-background: 222 55% 7%;
+    --sidebar-foreground: 210 30% 88%;
+    --sidebar-border: 217 33% 18%;
+
+    --radius: 1rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: "Vazirmatn", system-ui, sans-serif;
+    background-image:
+      radial-gradient(circle at 12% -10%, rgba(56, 189, 248, 0.16), transparent 42%),
+      radial-gradient(circle at 92% 8%, rgba(56, 189, 248, 0.1), transparent 40%),
+      radial-gradient(circle at 50% 110%, rgba(56, 189, 248, 0.08), transparent 45%);
+    background-color: #070b18;
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: rgba(56, 189, 248, 0.35);
+    color: #fff;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply relative rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl;
+    box-shadow:
+      0 1px 0 0 rgba(255, 255, 255, 0.05) inset,
+      0 8px 30px rgba(0, 0, 0, 0.35);
+  }
+
+  .glass-card-glow {
+    @apply glass-card transition-shadow duration-300;
+  }
+
+  .glass-card-glow:hover {
+    box-shadow:
+      0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
+      0 0 0 1px rgba(56, 189, 248, 0.35),
+      0 12px 40px rgba(56, 189, 248, 0.18);
+  }
+
+  .cyan-glow-border {
+    box-shadow:
+      0 0 0 1px rgba(56, 189, 248, 0.35),
+      0 0 24px rgba(56, 189, 248, 0.15);
+  }
+
+  .page-enter {
+    @apply animate-fade-in;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(56, 189, 248, 0.25);
+    border-radius: 999px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(56, 189, 248, 0.45);
+  }
+}
