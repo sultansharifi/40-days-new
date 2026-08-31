@@ -8,10 +8,15 @@ import { Toaster } from "@/components/ui/sonner";
 import App from "./App";
 import "./index.css";
 
+// Vite's BASE_URL reflects the --base flag used at build time (e.g.
+// "/40-days-new/" on GitHub Pages, "/" locally), so React Router's
+// basename stays correct for whatever subpath the app is served from.
+const basename = import.meta.env.BASE_URL.replace(/\/$/, "") || "/";
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <BrowserRouter basename={basename}>
         <AuthProvider>
           <App />
           <Toaster />

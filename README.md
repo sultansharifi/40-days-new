@@ -43,6 +43,26 @@ npm run dev
 3. از طریق صفحه ورود ثبت‌نام کنید، سپس نقش خودتان را در جدول `users` به
    `admin` تغییر دهید.
 
+## استقرار روی GitHub Pages
+
+یک workflow آماده در `.github/workflows/deploy.yml` قرار دارد که با هر
+push به `main`، اپ را build کرده و روی GitHub Pages منتشر می‌کند. برای
+فعال‌سازی (فقط یک‌بار لازم است):
+
+1. به **Settings → Pages** بروید و **Source** را روی **GitHub Actions**
+   بگذارید (نه «Deploy from a branch»).
+2. مقادیر `VITE_SUPABASE_URL` و `VITE_SUPABASE_ANON_KEY` را به‌صورت
+   **Repository secret** در **Settings → Secrets and variables → Actions**
+   اضافه کنید (workflow از قبل این دو secret را در مرحله build می‌خواند؛
+   بدون آن‌ها اپ build می‌شود ولی به Supabase وصل نمی‌شود).
+3. با merge شدن به `main`، آدرس سایت
+   `https://<username>.github.io/<repo-name>/` خواهد بود.
+
+چون این یک SPA با React Router است، `public/404.html` و اسکریپت داخل
+`index.html` مسیرهای داخلی (مثل `/reports`) را در برابر رفرش مستقیم روی
+Pages محافظت می‌کنند (تکنیک استاندارد
+[spa-github-pages](https://github.com/rafgraph/spa-github-pages)).
+
 ## اسکریپت‌ها
 
 | دستور             | توضیح                              |
