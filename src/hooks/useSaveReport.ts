@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import type { ReportFormValues } from "@/lib/reportFormSchema";
+import { rememberLastReportValues } from "@/lib/reportDraft";
 
 interface SaveReportArgs {
   values: ReportFormValues;
@@ -47,62 +48,61 @@ export function useSaveReport() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    // create_full_report / update_full_report run the report + participants
+    // + results writes inside a single Postgres function call, so they all
+    // succeed or all fail together. A report only ever exists — and only
+    // ever shows up in the dashboard or reports list — once the entire
+    // submission actually completed; a mid-way failure leaves nothing
+    // behind instead of a half-written "pending" report.
     mutationFn: async ({ values, files, createdBy, editingReportId }: SaveReportArgs) => {
-      const reportPayload = {
-        reporter_name: values.reporterName,
-        title: values.title,
-        province: values.province,
-        district: values.district,
-        center_name: values.centerName,
-        report_date: values.reportDate,
-        report_type: values.reportType as ReportFormValues["reportType"] & string,
-        objective: values.objective || null,
-        activity_description: values.activityDescription || null,
-        location: values.location || null,
-        start_date: values.startDate || null,
-        end_date: values.endDate || null,
+      const rpcArgs = {
+        p_reporter_name: values.reporterName,
+        p_title: values.title,
+        p_province: values.province,
+        p_district: values.district,
+        p_center_name: values.centerName,
+        p_report_date: values.reportDate,
+        p_report_type: values.reportType,
+        p_objective: values.objective || null,
+        p_activity_description: values.activityDescription || null,
+        p_location: values.location || null,
+        p_start_date: values.startDate || null,
+        p_end_date: values.endDate || null,
+        p_male_under18: values.maleUnder18,
+        p_female_under18: values.femaleUnder18,
+        p_male_over18: values.maleOver18,
+        p_female_over18: values.femaleOver18,
+        p_achievement: values.achievement || null,
+        p_challenges: values.challenges || null,
+        p_recommendations: values.recommendations || null,
       };
 
-      let reportId = editingReportId;
+      let reportId: string;
 
       if (editingReportId) {
-        const { error } = await supabase.from("reports").update(reportPayload).eq("id", editingReportId);
+        const { error } = await supabase.rpc("update_full_report", {
+          p_report_id: editingReportId,
+          ...rpcArgs,
+        });
         if (error) throw error;
+        reportId = editingReportId;
       } else {
-        const { data, error } = await supabase
-          .from("reports")
-          .insert({ ...reportPayload, created_by: createdBy, status: "pending" })
-          .select("id")
-          .single();
+        const { data, error } = await supabase.rpc("create_full_report", rpcArgs);
         if (error) throw error;
-        reportId = data.id;
+        reportId = data as string;
       }
-
-      if (!reportId) throw new Error("Report id missing after save");
-
-      const participantsPayload = {
-        report_id: reportId,
-        male_under18: values.maleUnder18,
-        female_under18: values.femaleUnder18,
-        male_over18: values.maleOver18,
-        female_over18: values.femaleOver18,
-      };
-      const { error: participantsError } = await supabase
-        .from("participants")
-        .upsert(participantsPayload, { onConflict: "report_id" });
-      if (participantsError) throw participantsError;
-
-      const resultsPayload = {
-        report_id: reportId,
-        achievement: values.achievement || null,
-        challenges: values.challenges || null,
-        recommendations: values.recommendations || null,
-      };
-      const { error: resultsError } = await supabase.from("results").upsert(resultsPayload, { onConflict: "report_id" });
-      if (resultsError) throw resultsError;
 
       if (files.length) {
         await uploadAttachments(reportId, createdBy, files);
+      }
+
+      if (!editingReportId) {
+        rememberLastReportValues(createdBy, {
+          reporterName: values.reporterName,
+          province: values.province,
+          district: values.district,
+          centerName: values.centerName,
+        });
       }
 
       return reportId;

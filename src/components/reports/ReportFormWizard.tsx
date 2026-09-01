@@ -19,14 +19,24 @@ import { ActivityDetailsStep, AttachmentsStep, ParticipantsStep, ResultsStep } f
 import { useSaveReport, useDeleteAttachment } from "@/hooks/useSaveReport";
 import { useAuth } from "@/context/AuthContext";
 import { todayISO } from "@/lib/persian-date";
+import { getLastReportValues } from "@/lib/reportDraft";
 
 interface ReportFormWizardProps {
   editingReportId?: string;
   initialValues?: Partial<ReportFormValues>;
   existingAttachments?: ReportAttachment[];
+  /** When provided (e.g. a modal), called with the saved report's id
+   * instead of navigating to its detail page — lets the caller just
+   * close the dialog and stay put. */
+  onSaved?: (reportId: string) => void;
 }
 
-export function ReportFormWizard({ editingReportId, initialValues, existingAttachments }: ReportFormWizardProps) {
+export function ReportFormWizard({
+  editingReportId,
+  initialValues,
+  existingAttachments,
+  onSaved,
+}: ReportFormWizardProps) {
   const { profile } = useAuth();
   const navigate = useNavigate();
   const saveReport = useSaveReport();
@@ -36,15 +46,20 @@ export function ReportFormWizard({ editingReportId, initialValues, existingAttac
   const [files, setFiles] = React.useState<File[]>([]);
   const [removedExisting, setRemovedExisting] = React.useState<ReportAttachment[]>([]);
 
+  // For a brand-new report, pre-fill the fields that repeat across a
+  // reporter's submissions (name, province, district, center) from their
+  // last one, so back-to-back reports don't need retyping the same info.
+  const remembered = !editingReportId && profile ? getLastReportValues(profile.id) : null;
+
   const methods = useForm<ReportFormValues>({
     resolver: zodResolver(reportFormSchema),
     mode: "onChange",
     defaultValues: {
-      reporterName: profile?.full_name ?? "",
+      reporterName: remembered?.reporterName ?? profile?.full_name ?? "",
       title: "",
-      province: profile?.province ?? "",
-      district: profile?.district ?? "",
-      centerName: "",
+      province: remembered?.province ?? profile?.province ?? "",
+      district: remembered?.district ?? profile?.district ?? "",
+      centerName: remembered?.centerName ?? "",
       reportDate: todayISO(),
       reportType: REPORT_TYPES[0],
       objective: "",
@@ -102,7 +117,11 @@ export function ReportFormWizard({ editingReportId, initialValues, existingAttac
         editingReportId,
       });
       toast.success(editingReportId ? "گزارش با موفقیت به‌روزرسانی شد" : "گزارش با موفقیت ثبت شد");
-      navigate(`/reports/${reportId}`);
+      if (onSaved) {
+        onSaved(reportId);
+      } else {
+        navigate(`/reports/${reportId}`);
+      }
     } catch (err) {
       toast.error("ثبت گزارش ناموفق بود", {
         description: err instanceof Error ? err.message : undefined,
@@ -141,6 +160,11 @@ export function ReportFormWizard({ editingReportId, initialValues, existingAttac
             <form onSubmit={onSubmit}>
               {step === 0 && (
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                  {remembered && (
+                    <p className="sm:col-span-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
+                      نام، ولایت، ولسوالی و مرکز از آخرین گزارش شما پر شد — در صورت نیاز تغییر دهید.
+                    </p>
+                  )}
                   <div className="space-y-2">
                     <Label>نام گزارش‌دهنده</Label>
                     <Input {...register("reporterName")} placeholder="نام کامل" />
