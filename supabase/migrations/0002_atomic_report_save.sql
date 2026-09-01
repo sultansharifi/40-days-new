@@ -134,6 +134,6 @@ grant execute on function public.create_full_report(
 ) to authenticated;
 
 grant execute on function public.update_full_report(
-  uuid, text, text, text, text, date, public.report_type, text, text, text, date, date,
+  uuid, text, text, text, text, text, date, public.report_type, text, text, text, date, date,
   integer, integer, integer, integer, text, text, text
 ) to authenticated;
