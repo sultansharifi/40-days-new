@@ -5,10 +5,9 @@ export interface DashboardStats {
   total: number;
   pending: number;
   approved: number;
-  rejected: number;
 }
 
-async function countReports(status?: "pending" | "approved" | "rejected") {
+async function countReports(status?: "pending" | "approved") {
   let query = supabase.from("reports").select("id", { count: "exact", head: true });
   if (status) query = query.eq("status", status);
   const { count, error } = await query;
@@ -20,13 +19,12 @@ export function useDashboardStats() {
   return useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async (): Promise<DashboardStats> => {
-      const [total, pending, approved, rejected] = await Promise.all([
+      const [total, pending, approved] = await Promise.all([
         countReports(),
         countReports("pending"),
         countReports("approved"),
-        countReports("rejected"),
       ]);
-      return { total, pending, approved, rejected };
+      return { total, pending, approved };
     },
     staleTime: 30_000,
   });

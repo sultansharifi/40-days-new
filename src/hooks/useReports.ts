@@ -70,9 +70,7 @@ export function useReportDetail(reportId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reports")
-        .select(
-          "*, participants(*), results(*), report_attachments(*), author:users!reports_created_by_fkey(id, full_name, email)",
-        )
+        .select("*, participants(*), results(*), report_attachments(*)")
         .eq("id", reportId as string)
         .single();
       if (error) throw error;

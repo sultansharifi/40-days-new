@@ -17,7 +17,6 @@ import type { ReportAttachment } from "@/types/database";
 import { reportFormSchema, STEP_FIELDS, STEP_LABELS, type ReportFormValues } from "@/lib/reportFormSchema";
 import { ActivityDetailsStep, AttachmentsStep, ParticipantsStep, ResultsStep } from "@/components/reports/ReportFormSteps";
 import { useSaveReport, useDeleteAttachment } from "@/hooks/useSaveReport";
-import { useAuth } from "@/context/AuthContext";
 import { todayISO } from "@/lib/persian-date";
 import { getLastReportValues } from "@/lib/reportDraft";
 
@@ -37,7 +36,6 @@ export function ReportFormWizard({
   existingAttachments,
   onSaved,
 }: ReportFormWizardProps) {
-  const { profile } = useAuth();
   const navigate = useNavigate();
   const saveReport = useSaveReport();
   const deleteAttachment = useDeleteAttachment();
@@ -46,19 +44,20 @@ export function ReportFormWizard({
   const [files, setFiles] = React.useState<File[]>([]);
   const [removedExisting, setRemovedExisting] = React.useState<ReportAttachment[]>([]);
 
-  // For a brand-new report, pre-fill the fields that repeat across a
-  // reporter's submissions (name, province, district, center) from their
-  // last one, so back-to-back reports don't need retyping the same info.
-  const remembered = !editingReportId && profile ? getLastReportValues(profile.id) : null;
+  // For a brand-new report, pre-fill the fields that repeat across
+  // submissions (name, province, district, center) from the last one filed
+  // in this browser, so back-to-back reports don't need retyping the same
+  // info.
+  const remembered = !editingReportId ? getLastReportValues() : null;
 
   const methods = useForm<ReportFormValues>({
     resolver: zodResolver(reportFormSchema),
     mode: "onChange",
     defaultValues: {
-      reporterName: remembered?.reporterName ?? profile?.full_name ?? "",
+      reporterName: remembered?.reporterName ?? "",
       title: "",
-      province: remembered?.province ?? profile?.province ?? "",
-      district: remembered?.district ?? profile?.district ?? "",
+      province: remembered?.province ?? "",
+      district: remembered?.district ?? "",
       centerName: remembered?.centerName ?? "",
       reportDate: todayISO(),
       reportType: REPORT_TYPES[0],
@@ -108,12 +107,10 @@ export function ReportFormWizard({
   };
 
   const onSubmit = handleSubmit(async (values) => {
-    if (!profile) return;
     try {
       const reportId = await saveReport.mutateAsync({
         values,
         files,
-        createdBy: profile.id,
         editingReportId,
       });
       toast.success(editingReportId ? "گزارش با موفقیت به‌روزرسانی شد" : "گزارش با موفقیت ثبت شد");
@@ -266,7 +263,7 @@ export function ReportFormWizard({
                 ) : (
                   <Button type="submit" disabled={isSubmitting || saveReport.isPending}>
                     {(isSubmitting || saveReport.isPending) && <Loader2 className="h-4 w-4 animate-spin" />}
-                    {editingReportId ? "به‌روزرسانی گزارش" : "ثبت نهایی گزارش"}
+                    {editingReportId ? "به‌روزرسانی گزارش" : "ایجاد گزارش"}
                   </Button>
                 )}
               </div>

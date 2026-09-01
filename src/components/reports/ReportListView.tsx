@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ReportFiltersBar } from "@/components/reports/ReportFilters";
-import { QuickAddReportDialog } from "@/components/reports/QuickAddReportDialog";
-import { StatusBadge } from "@/components/reports/StatusBadge";
+import { ReportDoneCheckbox } from "@/components/reports/ReportDoneCheckbox";
 import { useInfiniteReports, type ReportFilters } from "@/hooks/useReports";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { toJalaliShort, toPersianDigits } from "@/lib/persian-date";
@@ -15,29 +14,15 @@ import { toast } from "sonner";
 interface ReportListViewProps {
   title: string;
   subtitle?: string;
-  baseFilters?: Partial<ReportFilters>;
   exportFileName?: string;
-  emptyHint?: string;
-  hideStatusFilter?: boolean;
-  hideTypeFilter?: boolean;
 }
 
-export function ReportListView({
-  title,
-  subtitle,
-  baseFilters,
-  exportFileName = "گزارشات",
-  emptyHint,
-  hideStatusFilter,
-  hideTypeFilter,
-}: ReportListViewProps) {
-  const [filters, setFilters] = React.useState<ReportFilters>(baseFilters ?? {});
+export function ReportListView({ title, subtitle, exportFileName = "گزارشات" }: ReportListViewProps) {
+  const [filters, setFilters] = React.useState<ReportFilters>({});
   const [exporting, setExporting] = React.useState(false);
   const tableId = React.useId().replace(/[:]/g, "");
 
-  const effectiveFilters = React.useMemo(() => ({ ...baseFilters, ...filters }), [baseFilters, filters]);
-
-  const { data, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteReports(effectiveFilters);
+  const { data, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteReports(filters);
 
   const rows = React.useMemo(() => data?.pages.flatMap((p) => p.rows) ?? [], [data]);
   const total = data?.pages[0]?.total ?? 0;
@@ -75,14 +60,13 @@ export function ReportListView({
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{title}</h1>
+          <h2 className="text-xl font-bold">{title}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {isLoading ? "در حال بارگذاری..." : `${toPersianDigits(total)} گزارش یافت شد`}
             {subtitle ? ` — ${subtitle}` : ""}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <QuickAddReportDialog />
           <Button variant="outline" onClick={handleExportExcel}>
             <FileSpreadsheet className="h-4 w-4" />
             خروجی اکسل
@@ -94,12 +78,7 @@ export function ReportListView({
         </div>
       </div>
 
-      <ReportFiltersBar
-        filters={filters}
-        onChange={setFilters}
-        hideStatus={hideStatusFilter}
-        hideType={hideTypeFilter}
-      />
+      <ReportFiltersBar filters={filters} onChange={setFilters} />
 
       <div id={tableId} className="glass-card overflow-hidden rounded-2xl">
         <Table>
@@ -111,7 +90,7 @@ export function ReportListView({
               <TableHead>ولایت / ولسوالی</TableHead>
               <TableHead>مرکز</TableHead>
               <TableHead>تاریخ</TableHead>
-              <TableHead>وضعیت</TableHead>
+              <TableHead>انجام شده؟</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
@@ -132,7 +111,7 @@ export function ReportListView({
                 <TableCell colSpan={8}>
                   <div className="flex flex-col items-center gap-2 py-14 text-muted-foreground">
                     <Inbox className="h-10 w-10 opacity-50" />
-                    <div>{emptyHint ?? "هیچ گزارشی یافت نشد"}</div>
+                    <div>هیچ گزارشی یافت نشد</div>
                   </div>
                 </TableCell>
               </TableRow>
@@ -151,7 +130,7 @@ export function ReportListView({
                 <TableCell className="text-muted-foreground">{report.center_name}</TableCell>
                 <TableCell className="text-muted-foreground">{toJalaliShort(report.report_date)}</TableCell>
                 <TableCell>
-                  <StatusBadge status={report.status} />
+                  <ReportDoneCheckbox reportId={report.id} status={report.status} />
                 </TableCell>
                 <TableCell>
                   <Button variant="ghost" size="icon" asChild>
