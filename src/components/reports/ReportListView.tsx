@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ReportFiltersBar } from "@/components/reports/ReportFilters";
+import { QuickAddReportDialog } from "@/components/reports/QuickAddReportDialog";
 import { StatusBadge } from "@/components/reports/StatusBadge";
 import { useInfiniteReports, type ReportFilters } from "@/hooks/useReports";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
@@ -80,7 +81,8 @@ export function ReportListView({
             {subtitle ? ` — ${subtitle}` : ""}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <QuickAddReportDialog />
           <Button variant="outline" onClick={handleExportExcel}>
             <FileSpreadsheet className="h-4 w-4" />
             خروجی اکسل
