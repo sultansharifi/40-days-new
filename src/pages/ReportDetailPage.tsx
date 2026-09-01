@@ -2,11 +2,8 @@ import * as React from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowRight,
-  CheckCircle2,
-  XCircle,
   Pencil,
   Trash2,
-  Loader2,
   MapPin,
   Building2,
   CalendarDays,
@@ -31,10 +28,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { StatusBadge } from "@/components/reports/StatusBadge";
+import { ReportDoneCheckbox } from "@/components/reports/ReportDoneCheckbox";
 import { useReportDetail } from "@/hooks/useReports";
-import { useDeleteReport, useUpdateReportStatus, getAttachmentSignedUrl } from "@/hooks/useReportActions";
-import { useAuth } from "@/context/AuthContext";
+import { useDeleteReport, getAttachmentUrl } from "@/hooks/useReportActions";
 import { toJalali, toPersianDigits } from "@/lib/persian-date";
 import { toast } from "sonner";
 
@@ -62,41 +58,26 @@ function ParticipantStat({ label, value }: { label: string; value: number }) {
 }
 
 function AttachmentRow({ fileName, filePath }: { fileName: string; filePath: string }) {
-  const [loading, setLoading] = React.useState(false);
-
-  const handleDownload = async () => {
-    setLoading(true);
-    try {
-      const url = await getAttachmentSignedUrl(filePath);
-      window.open(url, "_blank", "noopener,noreferrer");
-    } catch {
-      toast.error("دریافت فایل ناموفق بود");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <button
-      onClick={handleDownload}
-      disabled={loading}
+    <a
+      href={getAttachmentUrl(filePath)}
+      target="_blank"
+      rel="noopener noreferrer"
       className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm transition-colors hover:border-primary/40 hover:bg-white/[0.06]"
     >
       <span className="flex items-center gap-2 truncate">
         <Paperclip className="h-4 w-4 shrink-0 text-primary" />
         <span className="truncate">{fileName}</span>
       </span>
-      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4 text-muted-foreground" />}
-    </button>
+      <Download className="h-4 w-4 text-muted-foreground" />
+    </a>
   );
 }
 
 export function ReportDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { profile, hasRole } = useAuth();
   const { data: report, isLoading } = useReportDetail(id);
-  const updateStatus = useUpdateReportStatus();
   const deleteReport = useDeleteReport();
 
   if (isLoading) {
@@ -112,25 +93,10 @@ export function ReportDetailPage() {
     return <div className="text-center text-muted-foreground">گزارش یافت نشد.</div>;
   }
 
-  const canReview = hasRole("admin", "manager") && report.status === "pending";
-  const isOwner = profile?.id === report.created_by;
-  const canEdit = (isOwner && report.status === "pending") || hasRole("admin");
-  const canDelete = hasRole("admin");
-
-  const handleApprove = async () => {
-    await updateStatus.mutateAsync({ id: report.id, status: "approved" });
-    toast.success("گزارش تایید شد");
-  };
-
-  const handleReject = async () => {
-    await updateStatus.mutateAsync({ id: report.id, status: "rejected" });
-    toast.success("گزارش رد شد");
-  };
-
   const handleDelete = async () => {
     await deleteReport.mutateAsync(report.id);
     toast.success("گزارش حذف شد");
-    navigate("/reports");
+    navigate("/");
   };
 
   return (
@@ -138,66 +104,48 @@ export function ReportDetailPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" asChild>
-            <Link to="/reports">
+            <Link to="/">
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold">{report.title}</h1>
-              <StatusBadge status={report.status} />
-            </div>
+            <h1 className="text-xl font-bold">{report.title}</h1>
             <div className="mt-1 font-mono text-xs text-muted-foreground" dir="ltr">
               {report.report_number}
             </div>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {canReview && (
-            <>
-              <Button onClick={handleApprove} disabled={updateStatus.isPending}>
-                <CheckCircle2 className="h-4 w-4" />
-                تایید
+        <div className="flex flex-wrap items-center gap-3">
+          <ReportDoneCheckbox reportId={report.id} status={report.status} />
+          <Button variant="outline" asChild>
+            <Link to={`/reports/${report.id}/edit`}>
+              <Pencil className="h-4 w-4" />
+              ویرایش
+            </Link>
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" className="text-destructive hover:text-destructive">
+                <Trash2 className="h-4 w-4" />
+                حذف
               </Button>
-              <Button variant="destructive" onClick={handleReject} disabled={updateStatus.isPending}>
-                <XCircle className="h-4 w-4" />
-                رد گزارش
-              </Button>
-            </>
-          )}
-          {canEdit && (
-            <Button variant="outline" asChild>
-              <Link to={`/reports/${report.id}/edit`}>
-                <Pencil className="h-4 w-4" />
-                ویرایش
-              </Link>
-            </Button>
-          )}
-          {canDelete && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" className="text-destructive hover:text-destructive">
-                  <Trash2 className="h-4 w-4" />
-                  حذف
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>حذف گزارش</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    آیا از حذف این گزارش مطمئن هستید؟ این عملیات قابل بازگشت نیست.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>انصراف</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-                    حذف قطعی
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>حذف گزارش</AlertDialogTitle>
+                <AlertDialogDescription>
+                  آیا از حذف این گزارش مطمئن هستید؟ این عملیات قابل بازگشت نیست.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>انصراف</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+                  حذف قطعی
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
@@ -211,7 +159,7 @@ export function ReportDetailPage() {
             <InfoItem icon={CalendarDays} label="تاریخ گزارش" value={toJalali(report.report_date)} />
             <InfoItem icon={MapPin} label="ولایت / ولسوالی" value={`${report.province} / ${report.district}`} />
             <InfoItem icon={Building2} label="مرکز آموزشی" value={report.center_name} />
-            <InfoItem icon={Users} label="ثبت‌کننده" value={report.author?.full_name} />
+            <InfoItem icon={Users} label="ثبت‌کننده" value={report.reporter_name} />
             <InfoItem
               icon={CalendarDays}
               label="دوره فعالیت"

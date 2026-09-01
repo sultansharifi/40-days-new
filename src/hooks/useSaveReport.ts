@@ -6,7 +6,6 @@ import { rememberLastReportValues } from "@/lib/reportDraft";
 interface SaveReportArgs {
   values: ReportFormValues;
   files: File[];
-  createdBy: string;
   editingReportId?: string;
 }
 
@@ -23,9 +22,9 @@ function fileTypeCategory(file: File): string {
   return "other";
 }
 
-async function uploadAttachments(reportId: string, createdBy: string, files: File[]) {
+async function uploadAttachments(reportId: string, files: File[]) {
   for (const file of files) {
-    const path = `${createdBy}/${reportId}/${Date.now()}-${file.name}`;
+    const path = `${reportId}/${Date.now()}-${file.name}`;
     const { error: uploadError } = await supabase.storage.from("report-attachments").upload(path, file, {
       cacheControl: "3600",
       upsert: false,
@@ -38,7 +37,7 @@ async function uploadAttachments(reportId: string, createdBy: string, files: Fil
       file_path: path,
       file_type: fileTypeCategory(file),
       file_size: file.size,
-      uploaded_by: createdBy,
+      uploaded_by: null,
     });
     if (insertError) throw insertError;
   }
@@ -51,10 +50,10 @@ export function useSaveReport() {
     // create_full_report / update_full_report run the report + participants
     // + results writes inside a single Postgres function call, so they all
     // succeed or all fail together. A report only ever exists — and only
-    // ever shows up in the dashboard or reports list — once the entire
-    // submission actually completed; a mid-way failure leaves nothing
-    // behind instead of a half-written "pending" report.
-    mutationFn: async ({ values, files, createdBy, editingReportId }: SaveReportArgs) => {
+    // ever shows up on the dashboard — once the entire submission actually
+    // completed; a mid-way failure leaves nothing behind instead of a
+    // half-written "pending" report.
+    mutationFn: async ({ values, files, editingReportId }: SaveReportArgs) => {
       const rpcArgs = {
         p_reporter_name: values.reporterName,
         p_title: values.title,
@@ -93,11 +92,11 @@ export function useSaveReport() {
       }
 
       if (files.length) {
-        await uploadAttachments(reportId, createdBy, files);
+        await uploadAttachments(reportId, files);
       }
 
       if (!editingReportId) {
-        rememberLastReportValues(createdBy, {
+        rememberLastReportValues({
           reporterName: values.reporterName,
           province: values.province,
           district: values.district,
@@ -110,6 +109,7 @@ export function useSaveReport() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reports"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["report-type-counts"] });
       queryClient.invalidateQueries({ queryKey: ["report"] });
     },
   });
