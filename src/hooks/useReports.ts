@@ -1,36 +1,20 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import type { Report, ReportStatus, ReportType, ReportWithRelations } from "@/types/database";
+import type { Report, ReportStatus } from "@/types/database";
 
 const PAGE_SIZE = 20;
 
 export interface ReportFilters {
   search?: string;
-  province?: string;
-  district?: string;
-  center?: string;
-  reportType?: ReportType | "all";
   status?: ReportStatus | "all";
-  dateFrom?: string;
-  dateTo?: string;
 }
 
 function applyFilters(query: any, filters: ReportFilters) {
   if (filters.search) {
     const s = filters.search.trim();
-    if (s) {
-      query = query.or(
-        `report_number.ilike.%${s}%,title.ilike.%${s}%,center_name.ilike.%${s}%`,
-      );
-    }
+    if (s) query = query.ilike("title", `%${s}%`);
   }
-  if (filters.province) query = query.eq("province", filters.province);
-  if (filters.district) query = query.ilike("district", `%${filters.district}%`);
-  if (filters.center) query = query.ilike("center_name", `%${filters.center}%`);
-  if (filters.reportType && filters.reportType !== "all") query = query.eq("report_type", filters.reportType);
   if (filters.status && filters.status !== "all") query = query.eq("status", filters.status);
-  if (filters.dateFrom) query = query.gte("report_date", filters.dateFrom);
-  if (filters.dateTo) query = query.lte("report_date", filters.dateTo);
   return query;
 }
 
@@ -68,13 +52,9 @@ export function useReportDetail(reportId: string | undefined) {
   return useQuery({
     queryKey: ["report", reportId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("reports")
-        .select("*, participants(*), results(*), report_attachments(*)")
-        .eq("id", reportId as string)
-        .single();
+      const { data, error } = await supabase.from("reports").select("*").eq("id", reportId as string).single();
       if (error) throw error;
-      return data as unknown as ReportWithRelations;
+      return data as Report;
     },
     enabled: Boolean(reportId),
   });

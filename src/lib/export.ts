@@ -12,26 +12,13 @@ function statusLabel(status: Report["status"]) {
 export function exportReportsToExcel(reports: Report[], filename = "گزارشات") {
   const rows = reports.map((r) => ({
     "شماره گزارش": r.report_number,
-    عنوان: r.title,
-    "نوع گزارش": r.report_type,
-    ولایت: r.province,
-    ولسوالی: r.district,
-    مرکز: r.center_name,
+    گزارش: r.title,
     تاریخ: toJalaliShort(r.report_date),
     وضعیت: statusLabel(r.status),
   }));
 
   const worksheet = XLSX.utils.json_to_sheet(rows);
-  worksheet["!cols"] = [
-    { wch: 16 },
-    { wch: 28 },
-    { wch: 12 },
-    { wch: 14 },
-    { wch: 14 },
-    { wch: 20 },
-    { wch: 14 },
-    { wch: 14 },
-  ];
+  worksheet["!cols"] = [{ wch: 16 }, { wch: 50 }, { wch: 14 }, { wch: 14 }];
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "گزارشات");
   XLSX.writeFile(workbook, `${filename}.xlsx`);

@@ -27,12 +27,7 @@ export function useDeleteReport() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reports"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      queryClient.invalidateQueries({ queryKey: ["report-type-counts"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-report-texts"] });
     },
   });
-}
-
-/** The attachments bucket is public, so this is just a URL — no auth/signing needed. */
-export function getAttachmentUrl(path: string) {
-  return supabase.storage.from("report-attachments").getPublicUrl(path).data.publicUrl;
 }
